@@ -6,7 +6,7 @@ export default function App() {
   const [theme, setTheme] = useState("light");
   const [weather, setWeather] = useState({
     temp: "--",
-    city: "Bengaluru",
+    city: "Loading...",
     icon: "⛅"
   });
 
@@ -19,22 +19,8 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    async function fetchWeather(lat, lon, fallbackCity) {
+    async function fetchWeather(lat, lon, label) {
       try {
-        let cityName = fallbackCity;
-
-        try {
-          const geoRes = await fetch(
-            `https://geocoding-api.open-meteo.com/v1/reverse?latitude=${lat}&longitude=${lon}&language=en`
-          );
-
-          const geoData = await geoRes.json();
-
-          if (geoData.results && geoData.results.length > 0) {
-            cityName = geoData.results[0].name;
-          }
-        } catch {}
-
         const res = await fetch(
           `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code`
         );
@@ -54,7 +40,7 @@ export default function App() {
 
         setWeather({
           temp,
-          city: cityName,
+          city: label,
           icon
         });
       } catch {
@@ -66,6 +52,34 @@ export default function App() {
       }
     }
 
+    async function detectCity(lat, lon) {
+      try {
+        const geoRes = await fetch(
+          `https://geocoding-api.open-meteo.com/v1/reverse?latitude=${lat}&longitude=${lon}&language=en`
+        );
+
+        const geoData = await geoRes.json();
+
+        if (geoData.results && geoData.results.length > 0) {
+          const place = geoData.results[0];
+
+          return (
+            place.city ||
+            place.town ||
+            place.village ||
+            place.suburb ||
+            place.locality ||
+            place.name ||
+            null
+          );
+        }
+
+        return null;
+      } catch {
+        return null;
+      }
+    }
+
     function loadLocationWeather() {
       if (!navigator.geolocation) {
         fetchWeather(12.97, 77.59, "Bengaluru");
@@ -73,17 +87,17 @@ export default function App() {
       }
 
       navigator.geolocation.getCurrentPosition(
-        (pos) => {
+        async (pos) => {
           const lat = pos.coords.latitude;
           const lon = pos.coords.longitude;
 
-          let city = "Your Area";
+          const city = await detectCity(lat, lon);
 
-          if (lat > 12.8 && lat < 13.2 && lon > 77.4 && lon < 77.8) {
-            city = "Bengaluru";
-          }
-
-          fetchWeather(lat, lon, city);
+          fetchWeather(
+            lat,
+            lon,
+            city || "Bengaluru"
+          );
         },
         () => {
           fetchWeather(12.97, 77.59, "Bengaluru");
@@ -110,13 +124,18 @@ export default function App() {
       : "Good Evening";
 
   const toggleTheme = () => {
-    setTheme((prev) => (prev === "light" ? "dark" : "light"));
+    setTheme((prev) =>
+      prev === "light" ? "dark" : "light"
+    );
   };
 
   return (
     <div className={`halo-container ${theme}`}>
       <div className="clock-widget">
-        <button className="theme-btn" onClick={toggleTheme}>
+        <button
+          className="theme-btn"
+          onClick={toggleTheme}
+        >
           {theme === "light" ? "🌑" : "☀️"}
         </button>
 
@@ -135,7 +154,7 @@ export default function App() {
             {time.toLocaleDateString([], {
               weekday: "long",
               month: "long",
-              day: "numeric",
+              day: "numeric"
             })}
           </p>
 
