@@ -185,3 +185,19 @@ body {
   margin-top: 10px;
   font-size: 14px;
 }
+
+.weather-line {
+  margin-top: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  opacity: 0.9;
+}
+
+.light .weather-line {
+  color: #8b7560;
+}
+
+.dark .weather-line {
+  color: rgba(255,255,255,0.72);
+}

@@ -5,6 +5,12 @@ export default function App() {
   const [time, setTime] = useState(new Date());
   const [theme, setTheme] = useState("light");
 
+  const weather = {
+    temp: 28,
+    city: "Bengaluru",
+    icon: "☀️"
+  };
+
   useEffect(() => {
     const timer = setInterval(() => {
       setTime(new Date());
@@ -50,6 +56,10 @@ export default function App() {
               month: "long",
               day: "numeric",
             })}
+          </p>
+
+          <p className="weather-line">
+            {weather.temp}° • {weather.city} {weather.icon}
           </p>
         </div>
       </div>
