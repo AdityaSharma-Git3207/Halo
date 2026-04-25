@@ -19,10 +19,24 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    async function fetchWeather() {
+    async function fetchWeather(lat, lon, fallbackCity) {
       try {
+        let cityName = fallbackCity;
+
+        try {
+          const geoRes = await fetch(
+            `https://geocoding-api.open-meteo.com/v1/reverse?latitude=${lat}&longitude=${lon}&language=en`
+          );
+
+          const geoData = await geoRes.json();
+
+          if (geoData.results && geoData.results.length > 0) {
+            cityName = geoData.results[0].name;
+          }
+        } catch {}
+
         const res = await fetch(
-          "https://api.open-meteo.com/v1/forecast?latitude=12.97&longitude=77.59&current=temperature_2m,weather_code"
+          `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code`
         );
 
         const data = await res.json();
@@ -40,7 +54,7 @@ export default function App() {
 
         setWeather({
           temp,
-          city: "Bengaluru",
+          city: cityName,
           icon
         });
       } catch {
@@ -52,9 +66,34 @@ export default function App() {
       }
     }
 
-    fetchWeather();
+    function loadLocationWeather() {
+      if (!navigator.geolocation) {
+        fetchWeather(12.97, 77.59, "Bengaluru");
+        return;
+      }
 
-    const interval = setInterval(fetchWeather, 1800000);
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const lat = pos.coords.latitude;
+          const lon = pos.coords.longitude;
+
+          let city = "Your Area";
+
+          if (lat > 12.8 && lat < 13.2 && lon > 77.4 && lon < 77.8) {
+            city = "Bengaluru";
+          }
+
+          fetchWeather(lat, lon, city);
+        },
+        () => {
+          fetchWeather(12.97, 77.59, "Bengaluru");
+        }
+      );
+    }
+
+    loadLocationWeather();
+
+    const interval = setInterval(loadLocationWeather, 1800000);
 
     return () => clearInterval(interval);
   }, []);
@@ -64,9 +103,11 @@ export default function App() {
   const displayHour = ((hour + 11) % 12 + 1);
 
   const greeting =
-    hour < 12 ? "Good Morning" :
-    hour < 18 ? "Good Afternoon" :
-    "Good Evening";
+    hour < 12
+      ? "Good Morning"
+      : hour < 18
+      ? "Good Afternoon"
+      : "Good Evening";
 
   const toggleTheme = () => {
     setTheme((prev) => (prev === "light" ? "dark" : "light"));
