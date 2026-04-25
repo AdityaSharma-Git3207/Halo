@@ -4,12 +4,11 @@ import "./App.css";
 export default function App() {
   const [time, setTime] = useState(new Date());
   const [theme, setTheme] = useState("light");
-
-  const weather = {
-    temp: 28,
+  const [weather, setWeather] = useState({
+    temp: "--",
     city: "Bengaluru",
-    icon: "☀️"
-  };
+    icon: "⛅"
+  });
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -17,6 +16,47 @@ export default function App() {
     }, 1000);
 
     return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    async function fetchWeather() {
+      try {
+        const res = await fetch(
+          "https://api.open-meteo.com/v1/forecast?latitude=12.97&longitude=77.59&current=temperature_2m,weather_code"
+        );
+
+        const data = await res.json();
+
+        const temp = Math.round(data.current.temperature_2m);
+        const code = data.current.weather_code;
+
+        let icon = "☀️";
+
+        if (code >= 1 && code <= 3) icon = "⛅";
+        if (code >= 45) icon = "🌫️";
+        if (code >= 51) icon = "🌧️";
+        if (code >= 71) icon = "❄️";
+        if (code >= 95) icon = "⛈️";
+
+        setWeather({
+          temp,
+          city: "Bengaluru",
+          icon
+        });
+      } catch {
+        setWeather({
+          temp: "--",
+          city: "Offline",
+          icon: "⚪"
+        });
+      }
+    }
+
+    fetchWeather();
+
+    const interval = setInterval(fetchWeather, 1800000);
+
+    return () => clearInterval(interval);
   }, []);
 
   const hour = time.getHours();
