@@ -6,7 +6,7 @@ export default function App() {
   const [theme, setTheme] = useState("light");
   const [weather, setWeather] = useState({
     temp: "--",
-    city: "Loading...",
+    city: "Bengaluru",
     icon: "⛅"
   });
 
@@ -19,7 +19,7 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    async function fetchWeather(lat, lon, label) {
+    async function fetchWeather(lat, lon, cityLabel) {
       try {
         const res = await fetch(
           `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code`
@@ -40,63 +40,30 @@ export default function App() {
 
         setWeather({
           temp,
-          city: label,
+          city: cityLabel,
           icon
         });
       } catch {
         setWeather({
           temp: "--",
-          city: "Offline",
+          city: "Bengaluru",
           icon: "⚪"
         });
       }
     }
 
-    async function detectCity(lat, lon) {
-      try {
-        const geoRes = await fetch(
-          `https://geocoding-api.open-meteo.com/v1/reverse?latitude=${lat}&longitude=${lon}&language=en`
-        );
-
-        const geoData = await geoRes.json();
-
-        if (geoData.results && geoData.results.length > 0) {
-          const place = geoData.results[0];
-
-          return (
-            place.city ||
-            place.town ||
-            place.village ||
-            place.suburb ||
-            place.locality ||
-            place.name ||
-            null
-          );
-        }
-
-        return null;
-      } catch {
-        return null;
-      }
-    }
-
-    function loadLocationWeather() {
+    function loadWeather() {
       if (!navigator.geolocation) {
         fetchWeather(12.97, 77.59, "Bengaluru");
         return;
       }
 
       navigator.geolocation.getCurrentPosition(
-        async (pos) => {
-          const lat = pos.coords.latitude;
-          const lon = pos.coords.longitude;
-
-          const city = await detectCity(lat, lon);
-
+        (pos) => {
           fetchWeather(
-            lat,
-            lon,
-            city || "Bengaluru"
+            pos.coords.latitude,
+            pos.coords.longitude,
+            "Bengaluru"
           );
         },
         () => {
@@ -105,12 +72,18 @@ export default function App() {
       );
     }
 
-    loadLocationWeather();
+    loadWeather();
 
-    const interval = setInterval(loadLocationWeather, 1800000);
+    const interval = setInterval(loadWeather, 1800000);
 
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    if (window.electronAPI) {
+      window.electronAPI.setTheme(theme);
+    }
+  }, [theme]);
 
   const hour = time.getHours();
   const minute = time.getMinutes().toString().padStart(2, "0");

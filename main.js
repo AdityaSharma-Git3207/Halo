@@ -1,66 +1,56 @@
-import { app, BrowserWindow } from "electron";
-import fs from "fs";
+import { app, BrowserWindow, ipcMain } from "electron";
 import path from "path";
+import { fileURLToPath } from "url";
 
 let win;
 
-const dataPath = path.join(app.getPath("userData"), "halo-position.json");
-
-function getSavedPosition() {
-  try {
-    const data = JSON.parse(fs.readFileSync(dataPath, "utf8"));
-    return data;
-  } catch {
-    return { x: 100, y: 100 };
-  }
-}
-
-function savePosition() {
-  if (!win) return;
-
-  const [x, y] = win.getPosition();
-  fs.writeFileSync(dataPath, JSON.stringify({ x, y }));
-}
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 function createWindow() {
-  const pos = getSavedPosition();
-
   win = new BrowserWindow({
     width: 420,
     height: 320,
-    x: pos.x,
-    y: pos.y,
+
     frame: false,
-    transparent: true,
-    hasShadow: false,
+    backgroundColor: "#eee7dc",
+    transparent: false,
+
     resizable: false,
     alwaysOnTop: true,
-    autoHideMenuBar: true,
-    skipTaskbar: false,
+    hasShadow: true,
+
+    roundedCorners: true,
+    thickFrame: false,
+    titleBarStyle: "hidden",
+
+    maximizable: false,
+    minimizable: false,
+    fullscreenable: false,
+
     webPreferences: {
       contextIsolation: true,
-      nodeIntegration: false
+      preload: path.join(__dirname, "preload.js")
     }
   });
 
   win.loadURL("http://localhost:5173");
-
-  win.on("moved", savePosition);
-  win.on("close", savePosition);
 }
 
 app.whenReady().then(() => {
   createWindow();
 
-  app.on("activate", () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-      createWindow();
+  ipcMain.on("set-theme", (_, theme) => {
+    if (!win) return;
+
+    if (theme === "dark") {
+      win.setBackgroundColor("#11131a");
+    } else {
+      win.setBackgroundColor("#eee7dc");
     }
   });
 });
 
 app.on("window-all-closed", () => {
-  if (process.platform !== "darwin") {
-    app.quit();
-  }
+  if (process.platform !== "darwin") app.quit();
 });
