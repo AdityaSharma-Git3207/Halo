@@ -64,50 +64,70 @@ body {
 
   -webkit-app-region: drag;
   user-select: none;
-  transition: all 0.35s ease;
 }
 
-/* THEME BUTTON */
-.theme-btn {
-  position: absolute;
-  bottom: -10px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 42px;
-  height: 42px;
-  border: none;
-  border-radius: 999px;
-  cursor: pointer;
-  font-size: 18px;
-  z-index: 8;
-
-  -webkit-app-region: no-drag;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  box-shadow: 0 8px 18px rgba(0,0,0,0.16);
-}
-
-/* LIGHT */
+/* LIGHT CARD */
 .light .clock-widget {
   background: linear-gradient(145deg, #f5f1eb, #e7dfd4);
-  box-shadow:
-    0 18px 40px rgba(0,0,0,0.12),
-    inset 0 1px 0 rgba(255,255,255,0.22);
+  animation: lightBreathe 5s ease-in-out infinite;
 }
 
-.light .clock-widget::before {
+/* DARK CARD */
+.dark .clock-widget {
+  background: linear-gradient(145deg, #1a1c20, #111214);
+  animation: darkBreathe 5s ease-in-out infinite;
+}
+
+/* INNER BORDER */
+.clock-widget::before {
   content: "";
   position: absolute;
   inset: 12px;
   border-radius: 34px;
+}
+
+.light .clock-widget::before {
   border: 1px solid rgba(120,100,80,0.14);
 }
 
-.light .theme-btn {
-  background: rgba(255,255,255,0.72);
+.dark .clock-widget::before {
+  border: 1px solid rgba(255,255,255,0.06);
+}
+
+/* AMBIENT GLOW */
+.clock-widget::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  animation: glowMove 8s ease-in-out infinite;
+}
+
+.light .clock-widget::after {
+  background: radial-gradient(
+    circle at 20% 20%,
+    rgba(255,255,255,0.16),
+    transparent 38%
+  );
+}
+
+.dark .clock-widget::after {
+  background: radial-gradient(
+    circle at 20% 20%,
+    rgba(255,255,255,0.06),
+    transparent 38%
+  );
+}
+
+/* TICKS */
+.ticks {
+  position: absolute;
+  inset: 20px;
+  border-radius: 32px;
+  mask: radial-gradient(circle, transparent 68%, black 69%);
+  -webkit-mask: radial-gradient(circle, transparent 68%, black 69%);
+  opacity: 0.75;
 }
 
 .light .ticks {
@@ -119,38 +139,6 @@ body {
     );
 }
 
-.light .greeting,
-.light .date,
-.light .weather-line {
-  color: #8b7560;
-}
-
-.light .hour,
-.light .minute,
-.light .colon {
-  color: #2f2924;
-}
-
-/* DARK */
-.dark .clock-widget {
-  background: linear-gradient(145deg, #1a1c20, #111214);
-  box-shadow:
-    0 18px 40px rgba(0,0,0,0.42),
-    inset 0 1px 0 rgba(255,255,255,0.04);
-}
-
-.dark .clock-widget::before {
-  content: "";
-  position: absolute;
-  inset: 12px;
-  border-radius: 34px;
-  border: 1px solid rgba(255,255,255,0.06);
-}
-
-.dark .theme-btn {
-  background: rgba(255,255,255,0.08);
-}
-
 .dark .ticks {
   background:
     repeating-conic-gradient(
@@ -158,6 +146,42 @@ body {
       rgba(255,255,255,0.22) 0deg 0.8deg,
       transparent 0.8deg 10deg
     );
+}
+
+/* CONTENT */
+.clock-center {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+}
+
+.greeting,
+.date,
+.weather-line,
+.hour,
+.minute,
+.colon,
+.clock-widget::before,
+.halo-container,
+.clock-widget {
+  transition:
+    background 0.9s cubic-bezier(.22,1,.36,1),
+    color 0.65s ease,
+    box-shadow 0.9s cubic-bezier(.22,1,.36,1),
+    border-color 0.65s ease,
+    opacity 0.65s ease;
+}
+
+.greeting {
+  font-size: clamp(12px, 2vw, 14px);
+  margin-bottom: 8px;
+  letter-spacing: 0.4px;
+}
+
+.light .greeting,
+.light .date,
+.light .weather-line {
+  color: #8b7560;
 }
 
 .dark .greeting,
@@ -169,48 +193,33 @@ body {
   color: rgba(255,255,255,0.72);
 }
 
-.dark .hour,
-.dark .minute,
-.dark .colon {
-  color: #ffffff;
-}
-
-/* COMMON */
-.ticks {
-  position: absolute;
-  inset: 20px;
-  border-radius: 32px;
-  mask: radial-gradient(circle, transparent 68%, black 69%);
-  -webkit-mask: radial-gradient(circle, transparent 68%, black 69%);
-  opacity: 0.75;
-}
-
-.clock-center {
-  position: relative;
-  z-index: 2;
-  text-align: center;
-}
-
-.greeting {
-  font-size: 14px;
-  margin-bottom: 8px;
-  letter-spacing: 0.4px;
-}
-
 .time-row {
   display: flex;
   align-items: baseline;
   justify-content: center;
   gap: 2px;
+  animation: timeSwap 0.45s ease;
 }
 
 .hour,
 .minute,
 .colon {
-  font-size: 86px;
+  font-size: clamp(56px, 18vw, 86px);
   font-weight: 800;
   line-height: 0.95;
   letter-spacing: -4px;
+}
+
+.light .hour,
+.light .minute,
+.light .colon {
+  color: #2f2924;
+}
+
+.dark .hour,
+.dark .minute,
+.dark .colon {
+  color: #ffffff;
 }
 
 .colon {
@@ -219,13 +228,104 @@ body {
 
 .date {
   margin-top: 10px;
-  font-size: 14px;
+  font-size: clamp(12px, 2vw, 14px);
 }
 
 .weather-line {
   margin-top: 8px;
-  font-size: 13px;
+  font-size: clamp(11px, 1.9vw, 13px);
   font-weight: 600;
   letter-spacing: 0.2px;
   opacity: 0.9;
+}
+
+/* THEME BUTTON */
+.theme-btn {
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+
+  width: 42px;
+  height: 42px;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 18px;
+  z-index: 8;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  -webkit-app-region: no-drag;
+
+  box-shadow: 0 8px 18px rgba(0,0,0,0.16);
+
+  transition:
+    transform 0.85s cubic-bezier(.22,1,.36,1),
+    background 0.7s ease,
+    box-shadow 0.7s ease;
+}
+
+.light .theme-btn {
+  background: rgba(255,255,255,0.72);
+  transform: translateX(-50%) rotate(0deg);
+}
+
+.dark .theme-btn {
+  background: rgba(255,255,255,0.08);
+  transform: translateX(-50%) rotate(180deg);
+}
+
+.theme-btn:hover {
+  box-shadow: 0 12px 24px rgba(0,0,0,0.22);
+}
+
+/* KEYFRAMES */
+@keyframes lightBreathe {
+  0%,100% {
+    box-shadow:
+      0 18px 40px rgba(0,0,0,0.12),
+      inset 0 1px 0 rgba(255,255,255,0.22);
+  }
+  50% {
+    box-shadow:
+      0 24px 54px rgba(0,0,0,0.18),
+      inset 0 1px 0 rgba(255,255,255,0.22);
+  }
+}
+
+@keyframes darkBreathe {
+  0%,100% {
+    box-shadow:
+      0 18px 40px rgba(0,0,0,0.42),
+      inset 0 1px 0 rgba(255,255,255,0.04);
+  }
+  50% {
+    box-shadow:
+      0 24px 56px rgba(0,0,0,0.55),
+      inset 0 1px 0 rgba(255,255,255,0.04);
+  }
+}
+
+@keyframes glowMove {
+  0%,100% {
+    transform: translate(0,0);
+    opacity: .45;
+  }
+  50% {
+    transform: translate(10px,8px);
+    opacity: .85;
+  }
+}
+
+@keyframes timeSwap {
+  0% {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }

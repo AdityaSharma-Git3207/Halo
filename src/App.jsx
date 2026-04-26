@@ -10,6 +10,7 @@ export default function App() {
     icon: "⛅"
   });
 
+  /* CLOCK */
   useEffect(() => {
     const timer = setInterval(() => {
       setTime(new Date());
@@ -18,6 +19,7 @@ export default function App() {
     return () => clearInterval(timer);
   }, []);
 
+  /* WEATHER */
   useEffect(() => {
     async function fetchWeather(lat, lon, cityLabel) {
       try {
@@ -79,6 +81,7 @@ export default function App() {
     return () => clearInterval(interval);
   }, []);
 
+  /* ELECTRON WINDOW THEME SYNC */
   useEffect(() => {
     if (window.electronAPI) {
       window.electronAPI.setTheme(theme);
@@ -117,7 +120,11 @@ export default function App() {
         <div className="clock-center">
           <p className="greeting">{greeting}</p>
 
-          <div className="time-row">
+          {/* key forces smooth re-mount animation every minute */}
+          <div
+            className="time-row"
+            key={`${displayHour}-${minute}`}
+          >
             <span className="hour">{displayHour}</span>
             <span className="colon">:</span>
             <span className="minute">{minute}</span>
